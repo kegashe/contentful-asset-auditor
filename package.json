@@ -1,0 +1,19 @@
+{
+  "name": "contentful-cleanup",
+  "version": "1.0.0",
+  "bin": {
+    "contentful-cleanup": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "preferGlobal": true,
+  "author": "Kevin Strong-Holte",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cli-progress": "^3.12.0",
+    "dotenv": "^16.4.5",
+    "yargs": "^17.7.2"
+  }
+}
