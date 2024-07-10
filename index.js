@@ -3,51 +3,56 @@
 require('dotenv').config();
 const cliProgress = require('cli-progress');
 const yargs = require('yargs');
-const { writeFile, readFile } = require('node:fs/promises');
+const { writeFile } = require('node:fs/promises');
 
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.legacy);
 
-const options = yargs
+yargs
 	.scriptName('contentful-cleanup')
 	.usage('Usage: $0 <command> [options]')
 	.command({
-		command: 'get',
+		command: 'get-assets',
 		desc: 'Get list of assets from Contentful space',
 		builder: (y) => {
 			y
-				.usage('Usage: $0 get [-o <file_path>]')
-				.example('$0 get -o assets.json')
+				.usage('Usage: $0 get-assets [-o <file_path>]')
+				.example('$0 get-assets -o assets.json')
 				.option('o', {
 					alias: 'output-file',
-					describe: 'Output file you want to save data to'
+					describe: 'Output file you want to save data to (JSON format)'
 				})
+				.demandOption(['output-file'])
 		},
-		handler: (argv) => commandHandlerGet(argv)
+		handler: (argv) => commandHandlerGetAssets(argv)
 	})
 	.command({
-		command: 'find',
-		desc: 'Find orphaned assets',
+		command: 'get-asset-details',
+		desc: 'Get detailed information about assets',
 		builder: (y) => {
 			y
-				.usage('Usage: $0 find [-i <file_path> | -o <file_path>]')
-				.example('$0 find -i assets.json -o orphanedAssets.json')
+				.usage('Usage: $0 get-asset-details [-i <file_path> | -o <file_path>]')
+				.example('$0 get-asset-details -i assets.json -o orphanedAssets.json')
 				.option('i', {
 					alias: 'input-file',
-					describe: 'Input file you want to read data from',
+					describe: 'Input file you want to read data from (JSON format)',
 				})
 				.option('o', {
 					alias: 'output-file',
-					describe: 'Output file you want to write data to'
+					describe: 'Output file you want to write data to (CSV format)'
 				})
-				.demandOption(['input-file'])
+				.option('m', {
+					alias: 'max',
+					describe: 'Maximum number of assets to analyze'
+				})
+				.demandOption(['input-file', 'output-file'])
 		},
-		handler: (argv) => commandHandlerFind(argv)
+		handler: (argv) => commandHandlerGetAssetDetails(argv)
 	})
 	.alias('h', 'help')
 	.parse()
 	.argv;
 
-async function commandHandlerGet(argv) {
+async function commandHandlerGetAssets(argv) {
 	try {
 		const assetsInitial = await getAssets(0);
 
@@ -85,44 +90,44 @@ async function commandHandlerGet(argv) {
 	}
 }
 
-async function commandHandlerFind(argv) {
+async function commandHandlerGetAssetDetails(argv) {
 	try {
-		const data = await readFromFile(argv['input-file']);
+		const readData = await readFromFile(argv['input-file']);
+		const assets = readData.items;
+		const assetCount = argv.max || assets.length;
 
-		let assets = [];
+		let writeData = `Asset ID,Asset Title,Filename,Content Type,Published At,Updated At,Created At,Count of Linked Entries\n`;
 
-		progressBar.start(data.items.length, 0);
+		progressBar.start(assetCount, 0);
 
-		for (let i = 0; i < data.items.length; i++) {
+		for (let i = 0; i < assetCount; i++) {
 			if (i % 7 == 0) {
 				await sleep(1000);
 			}
 
-			let found = await findEntries(data.items[i].sys.id)
+			let assetDetails = await getAssetDetails(assets[i]['sys']['id']);
 
-			if (found) {
-				assets.push(data.items[i].sys.id);
-			}
+			writeData += (assets[i]?.['sys']?.['id'] || '') + ',';
+			writeData += (assets[i]?.['fields']?.['title']?.['en-US'] || '') + ',';
+			writeData += (assets[i]?.['fields']?.['file']?.['en-US']?.['fileName'] || '') + ',';
+			writeData += (assets[i]?.['fields']?.['file']?.['en-US']?.['contentType'] || '') + ',';
+			writeData += (assets[i]?.['sys']?.['publishedAt'] || '') + ',';
+			writeData += (assets[i]?.['sys']?.['updatedAt'] || '' ) + ',';
+			writeData += (assets[i]?.['sys']?.['createdAt'] || '') + ',';
+			writeData += assetDetails['total'] + '\n';
 
 			progressBar.increment();
 		}
 
 		progressBar.stop();
 
-		console.log(`Found ${assets.length} orphaned assets.`);
-
-		if (argv['output-file']) {
-			let data = `Asset ID\n`;
-			assets.forEach((e) => data += `${e}\n`);
-
-			await writeToFile(argv['output-file'], data);
-		}
+		await writeToFile(argv['output-file'], writeData);
 	} catch (err) {
 		console.error(err);
 	}
 }
 
-async function findEntries(assetId) {
+async function getAssetDetails(assetId) {
 	const reqHeaders = new Headers();
 	reqHeaders.set('Authorization', `Bearer ${process.env.CONTENTFUL_CDA_TOKEN}`);
 	const url = `${process.env.CONTENTFUL_BASE_URL_CDA}/spaces/${process.env.CONTENTFUL_SPACE_ID}/environments/${process.env.CONTENTFUL_ENVIRONMENT_ID}/entries?links_to_asset=${assetId}`;
@@ -139,7 +144,7 @@ async function findEntries(assetId) {
 
 	const results = await response.json();
 
-	return results.total === 0;
+	return results;
 }
 
 async function getAssets(skipInput) {
