@@ -101,10 +101,6 @@ async function commandHandlerGetAssetDetails(argv) {
 		progressBar.start(assetCount, 0);
 
 		for (let i = 0; i < assetCount; i++) {
-			if (i % 7 == 0) {
-				await sleep(1000);
-			}
-
 			let assetDetails = await getAssetDetails(assets[i]['sys']['id']);
 
 			writeData += (assets[i]?.['sys']?.['id'] || '') + ',';
@@ -128,17 +124,21 @@ async function commandHandlerGetAssetDetails(argv) {
 }
 
 async function getAssetDetails(assetId) {
-	const reqHeaders = new Headers();
-	reqHeaders.set('Authorization', `Bearer ${process.env.CONTENTFUL_CDA_TOKEN}`);
+	const requestHeaders = new Headers();
+	requestHeaders.set('Authorization', `Bearer ${process.env.CONTENTFUL_CDA_TOKEN}`);
 	const url = `${process.env.CONTENTFUL_BASE_URL_CDA}/spaces/${process.env.CONTENTFUL_SPACE_ID}/environments/${process.env.CONTENTFUL_ENVIRONMENT_ID}/entries?links_to_asset=${assetId}`;
 
-	const req = new Request(url, {
-		headers: reqHeaders
+	const request = new Request(url, {
+		headers: requestHeaders
 	});
 
-	const response = await fetch(req);
+	const response = await fetch(request);
 
 	if (!response.ok) {
+		if (response.headers.get('X-Contentful-RateLimit-Second-Remaining') === 0) {
+			sleep(1000);
+			getAssetDetails(assetId);
+		} 
 		throw new Error(`Error finding entries: ${response.status}`);
 	}
 
