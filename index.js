@@ -5,6 +5,8 @@ const cliProgress = require('cli-progress');
 const yargs = require('yargs');
 const { writeFile } = require('node:fs/promises');
 
+const Csv = require('./modules/csv');
+
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.legacy);
 
 yargs
@@ -96,6 +98,16 @@ async function commandHandlerGetAssetDetails(argv) {
 		const assets = readData.items;
 		const assetCount = argv.max || assets.length;
 
+		const csvFile = new Csv();
+		csvFile.addColumn({ name: 'Asset ID' });
+		csvFile.addColumn({ name: 'Asset Title' });
+		csvFile.addColumn({ name: 'Filename' });
+		csvFile.addColumn({ name: 'Content Type' });
+		csvFile.addColumn({ name: 'Published At' });
+		csvFile.addColumn({ name: 'Updated At' });
+		csvFile.addColumn({ name: 'Created At' });
+		csvFile.addColumn({ name: 'Count of Linked Entries' });
+
 		let writeData = `Asset ID,Asset Title,Filename,Content Type,Published At,Updated At,Created At,Count of Linked Entries\n`;
 
 		progressBar.start(assetCount, 0);
@@ -103,21 +115,47 @@ async function commandHandlerGetAssetDetails(argv) {
 		for (let i = 0; i < assetCount; i++) {
 			let assetDetails = await getAssetDetails(assets[i]['sys']['id']);
 
-			writeData += (assets[i]?.['sys']?.['id'] || '') + ',';
-			writeData += (assets[i]?.['fields']?.['title']?.['en-US'] || '') + ',';
-			writeData += (assets[i]?.['fields']?.['file']?.['en-US']?.['fileName'] || '') + ',';
-			writeData += (assets[i]?.['fields']?.['file']?.['en-US']?.['contentType'] || '') + ',';
-			writeData += (assets[i]?.['sys']?.['publishedAt'] || '') + ',';
-			writeData += (assets[i]?.['sys']?.['updatedAt'] || '' ) + ',';
-			writeData += (assets[i]?.['sys']?.['createdAt'] || '') + ',';
-			writeData += assetDetails['total'] + '\n';
+			csvFile.addRow([
+				{
+					column: 'Asset ID',
+					value: assets[i]?.['sys']?.['id']
+				},
+				{
+					column: 'Asset Title',
+					value: assets[i]?.['fields']?.['title']?.['en-US']
+				},
+				{
+					column: 'Filename',
+					value: assets[i]?.['fields']?.['file']?.['en-US']?.['fileName']
+				},
+				{
+					column: 'Content Type',
+					value: assets[i]?.['fields']?.['file']?.['en-US']?.['contentType']
+				},
+				{
+					column: 'Published At',
+					value: assets[i]?.['sys']?.['publishedAt']
+				},
+				{
+					column: 'Updated At',
+					value: assets[i]?.['sys']?.['updatedAt']
+				},
+				{
+					column: 'Created At',
+					value: assets[i]?.['sys']?.['createdAt']
+				},
+				{
+					column: 'Count of Linked Entries',
+					value: assetDetails['total']
+				}
+			]);
 
 			progressBar.increment();
 		}
 
 		progressBar.stop();
 
-		await writeToFile(argv['output-file'], writeData);
+		await writeToFile(argv['output-file'], csvFile.render());
 	} catch (err) {
 		console.error(err);
 	}
@@ -138,7 +176,7 @@ async function getAssetDetails(assetId) {
 		if (response.headers.get('X-Contentful-RateLimit-Second-Remaining') === 0) {
 			sleep(1000);
 			getAssetDetails(assetId);
-		} 
+		}
 		throw new Error(`Error finding entries: ${response.status}`);
 	}
 
