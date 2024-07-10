@@ -60,8 +60,17 @@ class Csv {
 			})
 		});
 
-		if (rowUniqueEntries.length > 0) {
-			this.rows.push(rowUniqueEntries);
+		const rowSanitized = rowUniqueEntries.map((r) => {
+			if (typeof r.value === 'string') {
+				r.value = r.value.replaceAll(',', '')
+			}
+			return r;
+		});
+
+		const dataToWrite = rowSanitized;
+
+		if (dataToWrite.length > 0) {
+			this.rows.push(dataToWrite);
 		}
 	}
 
@@ -88,7 +97,7 @@ class Csv {
 			for (let i = 0; i < this.columns.length; i++) {
 				data += r.find(n => n['column'] === this.columns[i]['name'])['value'];
 
-				if (i < this.columns.length - 1) {
+				if(i < this.columns.length - 1) {
 					data += ',';
 				}
 			}
