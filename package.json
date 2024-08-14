@@ -1,8 +1,8 @@
 {
-  "name": "contentful-cleanup",
+  "name": "contentful-asset-auditor",
   "version": "0.1.0",
   "bin": {
-    "contentful-cleanup": "dist/index.js"
+    "contentful-asset-auditor": "dist/index.js"
   },
   "scripts": {
     "build": "tsc -p .",

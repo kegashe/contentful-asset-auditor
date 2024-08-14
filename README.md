@@ -10,11 +10,11 @@
 
 ## Usage
 ```bash
-$ contentful-cleanup <command> [options]
+$ contentful-asset-auditor <command> [options]
 
 Commands:
-  contentful-cleanup get-assets         Get list of assets from Contentful space
-  contentful-cleanup get-asset-details  Get detailed information about assets
+  get-assets         Get list of assets from Contentful space
+  get-asset-details  Get detailed information about assets
 
 Options:
       --version  Show version number                                   [boolean]
@@ -23,7 +23,7 @@ Options:
 
 ### Get a list of Assets and save to JSON file
 ```bash
-$ contentful-cleanup get-assets [-o <file_path>]
+$ contentful-asset-auditor get-assets [-o <file_path>]
 
 Options:
       --version      Show version number                               [boolean]
@@ -32,12 +32,12 @@ Options:
   -h, --help         Show help                                         [boolean]
 
 Examples:
-  contentful-cleanup get-assets -o assets.json
+  contentful-asset-auditor get-assets -o assets.json
 ```
 
 ### Get detailed information about Assets and save to CSV file
 ```bash
-$ contentful-cleanup get-asset-details [-i <file_path> | -o <file_path>]
+$ contentful-asset-auditor get-asset-details [-i <file_path> | -o <file_path>]
 
 Options:
       --version      Show version number                               [boolean]
@@ -49,7 +49,7 @@ Options:
   -h, --help         Show help                                         [boolean]
 
 Examples:
-  contentful-cleanup get-asset-details -i assets.json -o asset_details.json
+  contentful-asset-auditor get-asset-details -i assets.json -o asset_details.json
 ```
 
 ## Contributing
