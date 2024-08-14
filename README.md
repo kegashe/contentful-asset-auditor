@@ -1,6 +1,6 @@
-# contentful-cleanup
+# contentful-asset-auditor
 
-`contentful-cleanup` is a CLI tool to facilitate the management of media Assets in Contentful.
+`contentful-asset-auditor` is a CLI tool to facilitate the management of media Assets in Contentful.
 
 ## Installation
 
