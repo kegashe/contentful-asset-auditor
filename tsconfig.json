@@ -1,0 +1,33 @@
+{
+	"extends": "@tsconfig/recommended/tsconfig.json",
+	"compilerOptions": {
+		"rootDir": "src",
+		"outDir": "dist",
+		"module": "NodeNext",
+		"target": "ES5",
+		"inlineSourceMap": true,
+		"allowJs": true,
+		"allowSyntheticDefaultImports": true,
+		"moduleResolution": "NodeNext",
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": false,
+		"noImplicitAny": false,
+		"strictNullChecks": true,
+		"noUnusedLocals": true,
+		"esModuleInterop": true,
+		"plugins": [
+			{
+				"name": "typescript-tslint-plugin"
+			}
+		]
+	},
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.mts"
+	],
+	"exclude": [
+		"node_modules",
+		"package.json"
+	]
+}
