@@ -5,8 +5,7 @@
 ## Installation
 
 1. Download the source code for the [latest release](https://github.com/kstrongholte/contentful-cleanup/releases/latest).
-2. Install the package and dependencies with `npm install`.
-3. (Optional) Create a symbolic link with `npm link` so you can call the script locally.
+2. Install the package and dependencies globally with `npm i -g .`.
 
 ## Usage
 ```bash
